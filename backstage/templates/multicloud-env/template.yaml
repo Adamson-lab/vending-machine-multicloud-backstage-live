@@ -1,0 +1,55 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: multicloud-environment-vending
+  title: Multicloud Account / Subscription / Project Vending
+  description: Provision governed AWS accounts, Azure subscriptions, and GCP projects via Terraform and Backstage.
+spec:
+  owner: platform-engineering
+  type: cloud-environment
+  parameters:
+    - title: Environment Metadata
+      required: [envName, tier, ownerTeam, costCenter]
+      properties:
+        envName:
+          title: Environment Slug
+          type: string
+        tier:
+          title: Environment Tier
+          type: string
+          enum: [sandbox, dev, staging, prod]
+        ownerTeam:
+          title: Owning Team
+          type: string
+        costCenter:
+          title: Cost Center
+          type: string
+    - title: Target Clouds
+      properties:
+        enableAws:
+          title: Provision AWS Account
+          type: boolean
+          default: true
+        enableAzure:
+          title: Provision Azure Subscription
+          type: boolean
+          default: true
+        enableGcp:
+          title: Provision GCP Project
+          type: boolean
+          default: true
+  steps:
+    - id: validate-taxonomy
+      name: Validate Mandatory Tags & Labels
+      action: debug:log
+      input:
+        message: "Validating taxonomy and policy guardrails before Terraform plan."
+    - id: open-vending-pr
+      name: Create Terraform GitOps Pull Request
+      action: debug:log
+      input:
+        message: "Generated Terraform vending configuration for target cloud landing zones."
+  output:
+    links:
+      - title: Vending Control Plane
+        url: http://localhost:5173

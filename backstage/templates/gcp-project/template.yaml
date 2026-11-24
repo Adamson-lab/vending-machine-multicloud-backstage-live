@@ -1,0 +1,39 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: gcp-project-vending-workflow
+  title: GCP Project Vending Workflow
+  description: Provision a governed GCP project under an Organization Folder with Org Policies, Billing link, Labels, and Workload Identity.
+spec:
+  owner: platform-engineering
+  type: cloud-project
+  parameters:
+    - title: Project & Folder Target
+      required: [projectSlug, folderId, costCenter]
+      properties:
+        projectSlug:
+          title: Project Slug
+          type: string
+        folderId:
+          title: Target Folder
+          type: string
+          enum: [folders/prod-workloads, folders/nonprod-workloads, folders/sandbox, folders/ai-gpu]
+        costCenter:
+          title: Cost Center
+          type: string
+  steps:
+    - id: preflight
+      name: Validate Billing Account, Quotas & Labels
+      action: vending:preflight-check
+      input:
+        cloud: gcp
+        costCenter: ${{ parameters.costCenter }}
+    - id: pr
+      name: Create Terraform GitOps Pull Request
+      action: vending:gitops-pr
+      input:
+        module: terraform/modules/gcp-project
+  output:
+    links:
+      - title: Vending Machine Portal
+        url: https://vending-machine-multicloud-backstage.onrender.com

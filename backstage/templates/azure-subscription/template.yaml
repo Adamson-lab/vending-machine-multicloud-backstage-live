@@ -1,0 +1,39 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: azure-subscription-vending-workflow
+  title: Azure Subscription Vending Workflow
+  description: Provision a governed Azure subscription under an Entra ID Management Group with Policy initiatives, PIM, and OIDC.
+spec:
+  owner: platform-engineering
+  type: cloud-subscription
+  parameters:
+    - title: Subscription & Management Group Target
+      required: [subscriptionAlias, managementGroup, costCenter]
+      properties:
+        subscriptionAlias:
+          title: Subscription Alias
+          type: string
+        managementGroup:
+          title: Management Group
+          type: string
+          enum: [mg-corp-prod, mg-corp-nonprod, mg-sandbox, mg-sovereign]
+        costCenter:
+          title: Cost Center
+          type: string
+  steps:
+    - id: preflight
+      name: Validate Subscription Alias, Quota & CIDR
+      action: vending:preflight-check
+      input:
+        cloud: azure
+        costCenter: ${{ parameters.costCenter }}
+    - id: pr
+      name: Create Terraform GitOps Pull Request
+      action: vending:gitops-pr
+      input:
+        module: terraform/modules/azure-subscription
+  output:
+    links:
+      - title: Vending Machine Portal
+        url: https://vending-machine-multicloud-backstage.onrender.com

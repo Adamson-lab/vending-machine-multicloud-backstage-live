@@ -1,0 +1,39 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: aws-account-vending-workflow
+  title: AWS Account Vending Workflow
+  description: Provision a governed AWS account under AWS Organizations with SCPs, IAM Identity Center, OIDC, and Terraform state.
+spec:
+  owner: platform-engineering
+  type: cloud-account
+  parameters:
+    - title: AWS Account & Governance Target
+      required: [accountSlug, parentOu, costCenter]
+      properties:
+        accountSlug:
+          title: Account Slug
+          type: string
+        parentOu:
+          title: Target OU
+          type: string
+          enum: [ou-workloads-prod, ou-workloads-nonprod, ou-sandbox, ou-security]
+        costCenter:
+          title: Cost Center
+          type: string
+  steps:
+    - id: preflight
+      name: Run Quota, IPAM & Budget Pre-Flight Checks
+      action: vending:preflight-check
+      input:
+        cloud: aws
+        costCenter: ${{ parameters.costCenter }}
+    - id: pr
+      name: Create Terraform GitOps Pull Request
+      action: vending:gitops-pr
+      input:
+        module: terraform/modules/aws-account
+  output:
+    links:
+      - title: Vending Machine Portal
+        url: https://vending-machine-multicloud-backstage.onrender.com

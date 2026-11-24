@@ -1,0 +1,41 @@
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: three-cloud-landing-zone-bundle
+  title: Three-Cloud Landing Zone Bundle
+  description: Provision aligned AWS Account, Azure Subscription, and GCP Project with unified tags, guardrails, and OIDC state.
+spec:
+  owner: platform-engineering
+  type: multicloud-landing-zone
+  parameters:
+    - title: Multicloud Environment Specification
+      required: [envSlug, ownerTeam, costCenter, sovereigntyProfile]
+      properties:
+        envSlug:
+          title: Environment Slug
+          type: string
+        ownerTeam:
+          title: Owning Team
+          type: string
+        costCenter:
+          title: Cost Center
+          type: string
+        sovereigntyProfile:
+          title: Sovereign Cloud Profile
+          type: string
+          enum: [Standard, FedRAMP, HIPAA, PCI, GDPR, Local Residency]
+  steps:
+    - id: resolve-taxonomy
+      name: Resolve Slugs, Residency & Budget Caps
+      action: vending:resolve-metadata
+      input:
+        sovereigntyProfile: ${{ parameters.sovereigntyProfile }}
+    - id: open-bundle-pr
+      name: Open Multicloud Terraform Pull Request
+      action: vending:gitops-pr
+      input:
+        bundle: aws+azure+gcp
+  output:
+    links:
+      - title: Vending Machine Portal
+        url: https://vending-machine-multicloud-backstage.onrender.com
